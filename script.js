@@ -12,6 +12,7 @@ function setup(){
     document.getElementById("name").value = name;
     //quadrati
     quadrati = [];
+    waterLevel=0.3
 
 	generate();
 }
@@ -48,7 +49,7 @@ function generaQuadrati() {
         for (var x = 0; x < width; x += resolution) {
             z = 255 * noise(x * 0.005, y * 0.005); //genera un colore con perlin noise con valori x e y
             
-            if (noise(x * 0.01, y * 0.01) < 0.4) { //se il noise è minore di 0.4 ()genera valori tra 0 e 1), allora è acqua
+            if (noise(x * 0.01, y * 0.01) < waterLevel) { //se il noise è minore di 0.4 ()genera valori tra 0 e 1), allora è acqua
                 color = "24, 64, 216";
                 r = 24;
                 g = 64;
