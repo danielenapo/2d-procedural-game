@@ -4,7 +4,7 @@ function setup(){
 	width=1000;
 	height=500;
 	createCanvas(width, height);
-	//noStroke();
+	noStroke();
 	//name generator
 	ng=new JapaneseNameGenerator(2,6);
 	var name="";
@@ -12,13 +12,15 @@ function setup(){
     document.getElementById("name").value = name;
     //quadrati
     quadrati = [];
-    waterLevel=0.3
-
-	generate();
+    waterLevel = 0.35;
+    lGrassLevel = 0.6;
+    randomTreasure = 0.005;
+    noiseValue = 0;
+	generateChunk();
 }
 
 //GENERA IL TERRENO
-function generate(){
+function generateChunk(){
 	//prende come seed il valore dell'input box
 	var name=document.getElementById("name").value;
 	//trasformo il nome della zona in un numero(per poter essere utilizzato come seed)
@@ -29,18 +31,11 @@ function generate(){
 	noiseSeed(seedName);
 
 	background(0);
-    resolution = 40; //risoluzione dell'mmagine(grandezza dei quadrati)
+    resolution = 30; //risoluzione dell'mmagine(grandezza dei quadrati)
 
     generaQuadrati();
 
-    var i = 0;
-    for (var y = 0; y < height; y += resolution) { //per ogni quadrato del canvas
-        for (var x = 0; x < width; x += resolution) {
-            fill(quadrati[i].r, quadrati[i].g, quadrati[i].b);
-            rect(quadrati[i].x, quadrati[i].y, quadrati[i].w, quadrati[i].h);
-            i++;
-        }
-    }
+
 	
 }
 
@@ -48,31 +43,45 @@ function generaQuadrati() {
     for (var y = 0; y < height; y += resolution) { //per ogni quadrato del canvas
         for (var x = 0; x < width; x += resolution) {
             z = 255 * noise(x * 0.005, y * 0.005); //genera un colore con perlin noise con valori x e y
-            
-            if (noise(x * 0.01, y * 0.01) < waterLevel) { //se il noise è minore di 0.4 ()genera valori tra 0 e 1), allora è acqua
-                color = "24, 64, 216";
-                r = 24;
-                g = 64;
-                b = 216;
+
+            if (noise(x * 0.005, y * 0.005)> waterLevel && Math.random() <= randomTreasure) {
+                r = 255;
+                g = 255;
+                b = 0;
+                quadrato= new Quadrato(x, y,resolution, resolution, r, g, b, true);
+                quadrati.push(quadrato);
             }
-            else { //altrimenti è terreno
-                r = z - 20;
-                g = z + 30;
-                b = z - 15;
+
+            else {
+                if (noise(x * 0.005, y * 0.005) < waterLevel) { //se il noise è minore di 0.4 ()genera valori tra 0 e 1), allora è acqua
+                    r = 24;
+                    g = 64;
+                    b = 216;
+                }
+                else if (noise(x * 0.005, y * 0.005) > waterLevel && noise(x * 0.01, y * 0.01) < lGrassLevel) { //altrimenti è terreno
+                    r = 70;
+                    g = 127;
+                    b = 0;
+                }
+                else {
+                    r = 42;
+                    g = 76;
+                    b = 0;
+                }
+                var q = new Quadrato(x, y, resolution, resolution, r, g, b, false);
+                quadrati.push(q);
             }
-            var q = new Quadrato(x, y, resolution, resolution, r, g, b);
-            quadrati.push(q);
         }
     }
 }
 
-function Quadrato(x, y, w, h, r, g, b) {
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
-    this.r = r;
-    this.g = g;
-    this.b = b;
+function draw() {
+    var i = 0;
+    for (var y = 0; y < height * 2; y += resolution) { //per ogni quadrato del canvas
+        for (var x = 0; x < width * 2; x += resolution) {
+            fill(quadrati[i].r, quadrati[i].g, quadrati[i].b);
+            rect(quadrati[i].x, quadrati[i].y, quadrati[i].w, quadrati[i].h);
+            i++;
+        }
+    }
 }
-
