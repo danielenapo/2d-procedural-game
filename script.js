@@ -1,10 +1,5 @@
 //INIZIALIZZAZIONI
 function setup(){
-	//canvas
-	width=1000;
-	height=500;
-	createCanvas(width, height);
-	noStroke();
 	//name generator
 	ng=new JapaneseNameGenerator(2,6);
 	var name="";
@@ -20,19 +15,32 @@ function setup(){
     noiseSeed(seedName);
     background(0);
     //quadrati
-    resolution = 30; //risoluzione dell'mmagine(grandezza dei quadrati)
+    resolution = 15; //risoluzione dell'mmagine(grandezza dei quadrati)
     quadrati = [];
     //opzon bioma
     waterLevel = 0.35;
-    lGrassLevel = 0.6;
+    lGrassLevel = 0.55;
     randomTreasure = 0.005;
     noiseValue = 0;
     //player
-    player = new Player(0, 0, resolution, resolution, 5, 100);
+    maxHealth=100
+    playerSpeed=3;
+    playerPos=[];   //playerPos is an array of two elements and it determines the pposition of the player in the quadrati matrix
+    playerPos.push(0); //playerPos[0] is x value
+    playerPos.push(0); //playerPos[1] is y value
+    player = new Player(playerPos[0], playerPos[1], resolution, resolution, playerSpeed, maxHealth);
     speedCounter = 6;
 
+    //canvas
+    width=50*resolution;
+    height=30*resolution;
+    createCanvas(width, height);
+    noStroke();
 
+    //generate world
 	generateChunk();
+
+
 }
 
 
@@ -42,12 +50,10 @@ function draw() {
     controlli();
 
     //stampa quadrati
-    var i = 0;
-    for (var y = 0; y < height * 2; y += resolution) { //per ogni quadrato del canvas
-        for (var x = 0; x < width * 2; x += resolution) {
-            fill(quadrati[i].r, quadrati[i].g, quadrati[i].b);
-            rect(quadrati[i].x, quadrati[i].y, quadrati[i].w, quadrati[i].h);
-            i++;
+    for (var x = 0; x < width * 2; x += resolution) { //per ogni quadrato del canvas
+        for (var y = 0; y < height * 2; y += resolution) {
+            fill(quadrati[x][y].r, quadrati[x][y].g, quadrati[x][y].b);
+            rect(quadrati[x][y].x, quadrati[x][y].y, quadrati[x][y].w, quadrati[x][y].h);
         }
     }
 
@@ -58,36 +64,36 @@ function draw() {
 
 //CONTROLLI CICLICI
 function controlli() {
-
-    //CONTROLLO TASTI PREMUTI
-    if (keyIsDown(RIGHT_ARROW) && trovaQuadrato(player.x + resolution, player.y) != 24 && speedCounter > player.speed) {
+    //CONTROLLO TASTI PREMUTI       
+    if (keyIsDown(RIGHT_ARROW) && quadrati[playerPos[0]+resolution][playerPos[1]].r != 24 && speedCounter > player.speed) {
+        playerPos[0]+=resolution;
         player.x += resolution;
         speedCounter = 0;
     }
-    else if (keyIsDown(LEFT_ARROW) && trovaQuadrato(player.x - resolution, player.y) != 24 && speedCounter > player.speed){
+    else if (keyIsDown(LEFT_ARROW) && quadrati[playerPos[0]-resolution][playerPos[1]].r != 24 && speedCounter > player.speed){
+        playerPos[0]-=resolution;
         player.x -= resolution;
         speedCounter = 0;
     }
-    else if (keyIsDown(UP_ARROW) && trovaQuadrato(player.x, player.y - resolution) != 24 && speedCounter > player.speed){
+    else if (keyIsDown(UP_ARROW) && quadrati[playerPos[0]][playerPos[1]-resolution].r != 24 && speedCounter > player.speed){
+        playerPos[1]-=resolution;
         player.y -= resolution;
         speedCounter = 0;
     }
-    else if (keyIsDown(DOWN_ARROW) && trovaQuadrato(player.x, player.y + resolution) != 24 && speedCounter > player.speed){
+    else if (keyIsDown(DOWN_ARROW) && quadrati[playerPos[0]][playerPos[1]+resolution].r!= 24 && speedCounter > player.speed){
+        playerPos[1]+=resolution;
         player.y += resolution;
         speedCounter = 0;
     }
-
     speedCounter++;
-
-
-
 }
 
 
 //GENERA CHUNK
 function generateChunk() {
-    for (var y = 0; y < height * 2; y += resolution) { //per ogni quadrato del canvas
-        for (var x = 0; x < width * 2; x += resolution) {
+    for (var x = 0; x < width * 2; x += resolution) { //per ogni quadrato del canvas
+        quadrati[x]=new Array();
+        for (var y = 0; y < height * 2; y += resolution) {
             noiseValue = noise(x * 0.005, y * 0.005)
             z = 255 * noiseValue; //genera un colore con perlin noise con valori x e y
 
@@ -96,9 +102,8 @@ function generateChunk() {
                 g = 255;
                 b = 0;
                 quadrato = new Quadrato(x, y, resolution, resolution, r, g, b, true);
-                quadrati.push(quadrato);
+                quadrati[x][y]=quadrato;
             }
-
             else {
                 if (noiseValue < waterLevel) { //se il noise è minore di 0.4 ()genera valori tra 0 e 1), allora è acqua
                     r = 24;
@@ -110,13 +115,13 @@ function generateChunk() {
                     g = 127;
                     b = 0;
                 }
-                else {
+                else { //altrimenti è erba alta
                     r = 42;
                     g = 76;
                     b = 0;
                 }
                 var q = new Quadrato(x, y, resolution, resolution, r, g, b, false);
-                quadrati.push(q);
+                quadrati[x][y]=q;
             }
         }
     }
