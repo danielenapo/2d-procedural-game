@@ -1,0 +1,11 @@
+var array1 = [[1, 2, 3],[1, 2, 3],[1, 2, 3]];
+
+for(x=0; x<3; x++){
+	var firstElement = array1[x].shift();
+	array1[x].push(4);
+}
+console.log(array1);
+// expected output: Array [2, 3]
+
+console.log(firstElement);
+// expected output: 1
